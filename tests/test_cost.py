@@ -19,6 +19,15 @@ def test_unknown_model_falls_back():
     assert model_price("claude-future-x") == model_price("claude-sonnet-4-6")
 
 
+def test_opus_4_8_is_priced_as_opus_not_default():
+    # Current flagship must be in the table, not silently fall back to Sonnet.
+    assert model_price("claude-opus-4-8") == (15.00, 75.00)
+
+
+def test_dated_opus_4_8_id_matches_by_prefix():
+    assert model_price("claude-opus-4-8-20260115") == (15.00, 75.00)
+
+
 def test_cost_basic():
     msg = _mock_message("claude-sonnet-4-6", 10_000, 1_000)
     out = cost_for_message(msg)
