@@ -11,6 +11,7 @@ from typing import Protocol
 # USD per 1M tokens. Update as the model family evolves.
 PRICE_PER_M_TOKENS: dict[str, tuple[float, float]] = {
     # model_id : (input_per_M, output_per_M)
+    "claude-opus-4-8": (15.00, 75.00),
     "claude-opus-4-7": (15.00, 75.00),
     "claude-opus-4-6": (15.00, 75.00),
     "claude-sonnet-4-6": (3.00, 15.00),
