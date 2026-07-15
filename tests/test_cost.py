@@ -21,11 +21,18 @@ def test_unknown_model_falls_back():
 
 def test_opus_4_8_is_priced_as_opus_not_default():
     # Current flagship must be in the table, not silently fall back to Sonnet.
-    assert model_price("claude-opus-4-8") == (15.00, 75.00)
+    assert model_price("claude-opus-4-8") == (5.00, 25.00)
 
 
 def test_dated_opus_4_8_id_matches_by_prefix():
-    assert model_price("claude-opus-4-8-20260115") == (15.00, 75.00)
+    assert model_price("claude-opus-4-8-20260115") == (5.00, 25.00)
+
+
+def test_current_models_are_in_table():
+    # Guard against silent fallback for the current lineup.
+    assert model_price("claude-fable-5") == (10.00, 50.00)
+    assert model_price("claude-sonnet-5") == (3.00, 15.00)
+    assert model_price("claude-haiku-4-5") == (1.00, 5.00)
 
 
 def test_cost_basic():
