@@ -29,7 +29,7 @@ Repository = "https://github.com/ajinb/cloudandsre-python"
 Issues = "https://github.com/ajinb/cloudandsre-python/issues"
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.6"]
+dev = ["pytest>=8", "ruff>=0.16,<0.17"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cloudandsre"]
