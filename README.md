@@ -4,7 +4,7 @@
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Extracted from the patterns [`alert-explainer`](https://github.com/ajinb/alert-explainer) and [`incident-scribe`](https://github.com/ajinb/incident-scribe) each grew independently; consolidating those tools onto this package is in progress. Each module is the simplest implementation that holds in production — graduate to a heavier library when you actually need it, not before.
+Used by [`alert-explainer`](https://github.com/ajinb/alert-explainer), which imports the async breaker and the cost meter rather than carrying its own. Other tools in the toolkit are being moved across as they need the same pieces. Each module is the simplest implementation that holds in production — graduate to a heavier library when you actually need it, not before.
 
 ## What's in here
 
@@ -12,6 +12,7 @@ Extracted from the patterns [`alert-explainer`](https://github.com/ajinb/alert-e
 |---|---|
 | `cloudandsre.retry` | Exponential-backoff retry decorator with jitter and a per-call deadline |
 | `cloudandsre.circuit_breaker` | Closed / open / half-open breaker around any callable (LLM APIs, downstream HTTP) |
+| `cloudandsre.async_circuit_breaker` | The same state machine for `await`-shaped callers, with an `ignore_exceptions` filter |
 | `cloudandsre.throttle` | Token-bucket rate limiter for outbound calls |
 | `cloudandsre.cost` | Token-and-cost accounting for Anthropic SDK responses, including prompt-cache reads and writes |
 | `cloudandsre.prompt_cache` | Helper to mark a system prompt block as ephemerally cached |
@@ -20,11 +21,21 @@ Nothing here imports the Anthropic SDK as a hard dependency — `cost` and `prom
 
 ## Install
 
+Not on PyPI yet, so install from source:
+
 ```bash
-pip install cloudandsre   # once published to PyPI
-# or, from source:
 pip install git+https://github.com/ajinb/cloudandsre-python.git
 ```
+
+Or as a dependency:
+
+```toml
+dependencies = ["cloudandsre @ git+https://github.com/ajinb/cloudandsre-python.git@main"]
+```
+
+A direct reference like that needs `tool.hatch.metadata.allow-direct-references = true` under
+hatchling, and it makes the consuming project unpublishable to PyPI — fine for a service, not for a
+library.
 
 ## Quickstart
 
