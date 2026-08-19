@@ -35,6 +35,7 @@ from cloudandsre.cost import cost_for_message
 
 breaker = CircuitBreaker(failure_threshold=5, reset_after_seconds=30)
 
+
 @retry(max_attempts=3, base_delay=0.5, max_delay=8.0)
 @breaker
 def enrich(alert: dict) -> dict:
