@@ -4,7 +4,7 @@
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Used by [`alert-explainer`](https://github.com/ajinb/alert-explainer), [`incident-scribe`](https://github.com/ajinb/incident-scribe), and the rest of the toolkit. Each module is the simplest implementation that holds in production — graduate to a heavier library when you actually need it, not before.
+Extracted from the patterns [`alert-explainer`](https://github.com/ajinb/alert-explainer) and [`incident-scribe`](https://github.com/ajinb/incident-scribe) each grew independently; consolidating those tools onto this package is in progress. Each module is the simplest implementation that holds in production — graduate to a heavier library when you actually need it, not before.
 
 ## What's in here
 
@@ -13,7 +13,7 @@ Used by [`alert-explainer`](https://github.com/ajinb/alert-explainer), [`inciden
 | `cloudandsre.retry` | Exponential-backoff retry decorator with jitter and a per-call deadline |
 | `cloudandsre.circuit_breaker` | Closed / open / half-open breaker around any callable (LLM APIs, downstream HTTP) |
 | `cloudandsre.throttle` | Token-bucket rate limiter for outbound calls |
-| `cloudandsre.cost` | Token-and-cost accounting for Anthropic SDK responses |
+| `cloudandsre.cost` | Token-and-cost accounting for Anthropic SDK responses, including prompt-cache reads and writes |
 | `cloudandsre.prompt_cache` | Helper to mark a system prompt block as ephemerally cached |
 
 Nothing here imports the Anthropic SDK as a hard dependency — `cost` and `prompt_cache` accept the relevant shapes structurally.
@@ -39,7 +39,11 @@ breaker = CircuitBreaker(failure_threshold=5, reset_after_seconds=30)
 @breaker
 def enrich(alert: dict) -> dict:
     response = anthropic.messages.create(...)
-    print(cost_for_message(response))   # {"tokens_in": ..., "tokens_out": ..., "usd": ...}
+    # Cache reads and writes are priced separately from uncached input, so a
+    # prompt-cached call reports what it actually costs.
+    print(cost_for_message(response))
+    # {"model": ..., "tokens_in": ..., "tokens_out": ...,
+    #  "cache_read_tokens": ..., "cache_write_tokens": ..., "usd": ...}
     return parse(response)
 ```
 
