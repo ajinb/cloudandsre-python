@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: "cloudandsre-python"
+message: "If you use this software, please cite it using the metadata below."
+type: software
+authors:
+  - family-names: Baby
+    given-names: Ajin
+    orcid: "https://orcid.org/0009-0007-6190-9516"
+repository-code: "https://github.com/ajinb/cloudandsre-python"
+url: "https://cloudandsre.com"
+abstract: "Shared Python utilities for AI-native cloud and SRE tools \u2014 retry/throttle/circuit-breaker decorators, prompt-cache helper, token-cost meter. Used by alert-explainer, incident-scribe, and the rest of the cloudandsre.com toolkit."
+license: Apache-2.0
+version: "0.2.0"
+date-released: "2026-11-02"
+keywords:
+  - sre
+  - llm
+  - circuit-breaker
+  - cost
+  - opentelemetry
