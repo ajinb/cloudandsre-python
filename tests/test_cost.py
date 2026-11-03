@@ -45,7 +45,7 @@ def test_dated_opus_4_8_id_matches_by_prefix():
 def test_current_models_are_in_table():
     # Guard against silent fallback for the current lineup.
     assert model_price("claude-fable-5") == (10.00, 50.00)
-    assert model_price("claude-sonnet-5") == (3.00, 15.00)
+    assert model_price("claude-sonnet-5") == (2.00, 10.00)
     assert model_price("claude-haiku-4-5") == (1.00, 5.00)
 
 
@@ -85,8 +85,8 @@ def test_cache_write_multipliers():
 
 
 def test_cache_tokens_are_billed():
-    # 10k uncached in, 1k out, 50k cache reads, 20k cache writes on Sonnet.
-    msg = _mock_cached_message("claude-sonnet-5", 10_000, 1_000, 50_000, 20_000)
+    # 10k uncached in, 1k out, 50k cache reads, 20k cache writes on Sonnet 4.6.
+    msg = _mock_cached_message("claude-sonnet-4-6", 10_000, 1_000, 50_000, 20_000)
     out = cost_for_message(msg)
     assert out["cache_read_tokens"] == 50_000
     assert out["cache_write_tokens"] == 20_000
@@ -97,11 +97,45 @@ def test_cache_tokens_are_billed():
 
 def test_cache_tokens_absent_costs_the_same_as_before():
     # Messages without cache fields must price exactly as they used to.
-    plain = cost_for_message(_mock_message("claude-sonnet-5", 10_000, 1_000))
-    zeroed = cost_for_message(_mock_cached_message("claude-sonnet-5", 10_000, 1_000, 0, 0))
+    plain = cost_for_message(_mock_message("claude-sonnet-4-6", 10_000, 1_000))
+    zeroed = cost_for_message(_mock_cached_message("claude-sonnet-4-6", 10_000, 1_000, 0, 0))
     assert plain["usd"] == zeroed["usd"] == 0.045
 
 
 def test_one_hour_ttl_costs_more_than_five_minute():
     msg = _mock_cached_message("claude-opus-5", 0, 0, 0, 100_000)
     assert cost_for_message(msg, cache_ttl="1h")["usd"] > cost_for_message(msg)["usd"]
+
+
+def test_sonnet_5_is_billed_at_standard_2_10_not_the_cancelled_3_15():
+    # The $3/$15 step-up scheduled for 2026-09-01 never happened.
+    out = cost_for_message(_mock_message("claude-sonnet-5", 1_000_000, 100_000))
+    assert out["usd"] == 3.0  # $2 input + $1 output
+
+
+def test_5_5_models_are_priced_with_cheaper_cache_reads():
+    assert model_price("claude-opus-5-5") == (4.00, 20.00)
+    assert model_price("claude-sonnet-5-5") == (2.00, 10.00)
+    assert model_price("claude-opus-5-5").cache_read_per_m == 0.20
+    assert model_price("claude-sonnet-5-5").cache_read_per_m == 0.10
+    assert model_price("claude-fable-5-1").cache_read_per_m == 0.25
+
+
+def test_longest_prefix_keeps_5_5_off_the_5_price():
+    assert model_price("claude-opus-5-5") != model_price("claude-opus-5")
+    assert model_price("claude-sonnet-5-5-20261101") == model_price("claude-sonnet-5-5")
+
+
+def test_haiku_5_5_switches_tier_above_100k_prompt_tokens():
+    short = cost_for_message(_mock_message("claude-haiku-5-5", 100_000, 10_000))
+    long = cost_for_message(_mock_cached_message("claude-haiku-5-5", 60_000, 10_000, 50_000, 0))
+    assert short["usd"] == round((100_000 * 0.10 + 10_000 * 0.50) / 1e6, 6)
+    # 110K prompt tokens (incl. cache reads) -> every category at the long-prompt rate
+    expected = (60_000 * 0.50 + 50_000 * 0.05 + 10_000 * 2.50) / 1e6
+    assert long["usd"] == round(expected, 6)
+
+
+def test_retired_opus_4_and_haiku_3_5_list_prices():
+    assert model_price("claude-opus-4-20250514") == (15.00, 75.00)
+    assert model_price("claude-opus-4-1") == (15.00, 75.00)
+    assert model_price("claude-3-5-haiku-20241022") == (0.80, 4.00)
